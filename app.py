@@ -37,4 +37,4 @@ def mantener_sesion_activa(intervalo_segundos=30):
 
 if __name__ == "__main__":
     # Si tu laptop se bloquea muy rápido, usa 15 o 20 segundos.
-    mantener_sesion_activa(intervalo_segundos=20)
+    mantener_sesion_activa(intervalo_segundos=5)
