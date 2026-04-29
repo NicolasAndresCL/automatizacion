@@ -6,28 +6,77 @@ import sys
 # Configuración de seguridad: Mover el mouse a una esquina detiene pyautogui
 pyautogui.FAILSAFE = True
 
+def inicializar_mouse():
+    """Posiciona el mouse en el centro de la pantalla al iniciar."""
+    ancho, alto = pyautogui.size()
+    centro_x = ancho // 2
+    centro_y = alto // 2
+    
+    print(f"\n📐 Dimensiones de pantalla: {ancho}x{alto}")
+    print(f"📍 Posicionando mouse en centro: ({centro_x}, {centro_y})")
+    
+    pyautogui.moveTo(centro_x, centro_y, duration=0.5)
+    time.sleep(1)
+
 def mantener_sesion_activa(intervalo_segundos=5):
     """Mueve el mouse y presiona Shift para evitar el bloqueo de pantalla."""
     print("\n--- [MODO] Simulador de Actividad Iniciado ---")
-    print("Mueve el mouse a cualquier esquina para forzar la detención.")
     print("Presiona CTRL + C para volver al menú.")
+    
+    # Inicializar mouse en el centro
+    inicializar_mouse()
+    
+    # Obtener dimensiones de pantalla una sola vez
+    ancho, alto = pyautogui.size()
+    
+    # Definir márgenes seguros (píxeles de distancia desde los bordes)
+    margen = 150
+    
+    # Calcular área segura donde el mouse se puede mover
+    x_min = margen
+    x_max = ancho - margen
+    y_min = margen
+    y_max = alto - margen
+    
+    print(f"🔒 Área segura: X({x_min}-{x_max}) Y({y_min}-{y_max})")
     
     try:
         while True:
-            # Movimiento aleatorio relativo
-            x_random = random.randint(-50, 50)
-            y_random = random.randint(-50, 50)
-            pyautogui.moveRel(x_random, y_random, duration=0.2)
+            # Obtener posición actual del mouse
+            x_actual, y_actual = pyautogui.position()
+            
+            # PARA FORZAR EL ERROR (comentado):
+            # Descomenta las siguientes 2 líneas para generar movimientos hacia las esquinas
+            # x_random = random.randint(-500, 500)
+            # y_random = random.randint(-500, 500)
+            
+            # Movimiento aleatorio relativo pequeño (±40 píxeles)
+            x_random = random.randint(-40, 40)
+            y_random = random.randint(-40, 40)
+            
+            # Calcular nueva posición
+            x_nueva = x_actual + x_random
+            y_nueva = y_actual + y_random
+            
+            # SOLUCIÓN: Limitar SIEMPRE dentro del área segura (nunca toca bordes)
+            x_nueva = max(x_min, min(x_nueva, x_max))
+            y_nueva = max(y_min, min(y_nueva, y_max))
+            
+            # Mover a la posición limitada
+            pyautogui.moveTo(x_nueva, y_nueva, duration=0.2)
             
             # Tecla Shift para mantener el sistema despierto
             pyautogui.press('shift')
             
             timestamp = time.strftime('%H:%M:%S')
-            print(f"[{timestamp}] Actividad simulada (Mouse + Shift)")
+            print(f"[{timestamp}] Actividad simulada (Mouse + Shift) | Posición: ({x_nueva}, {y_nueva})")
             
             time.sleep(intervalo_segundos)
     except KeyboardInterrupt:
         print("\n[!] Función detenida. Volviendo al menú...")
+    except pyautogui.FailSafeException:
+        print("\n[!] ⚠️ ¡Error de Fail-Safe detectado! El mouse tocó una esquina.")
+        print("[!] Volviendo al menú...")
 
 def ejecutar_navegacion_automatica():
     """Navega atrás y adelante en una pestaña del navegador."""
